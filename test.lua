@@ -2,6 +2,8 @@ local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can als
 
 local testRemove = true --false --# try with this set to false then try with it as true
 
+local forceErrorInTest = false
+
 local args = {...}
 
 
@@ -9,7 +11,7 @@ local args = {...}
 local function t(...)
   print(table.concat({...}, " ")) --# just test code
   args = {"test"} --# notice that this doesn't effect anything, although 
-  return checkpoint.reach("second") --# this tells Checkpoint what to run next, checkpoint.reach returns whatever the callback returns
+  checkpoint.reach("second") --# this tells Checkpoint what to run next, checkpoint.reach returns whatever the callback returns
 end 
 
 local function c(...)
@@ -17,7 +19,7 @@ local function c(...)
   
   print("Queuing terminate event, rerun program for next part of test")
    --os.queueEvent("terminate")
-  return checkpoint.reach("third")
+  checkpoint.reach("third")
 end
 
 local function d()
@@ -25,10 +27,15 @@ local function d()
   sleep(0.001) --# catch that terminate if we are on first run, second run won't have a terminate
   print("I'll take that as no")
   
+  if forceErrorInTest then
+    error("forceErrorInTest")
+  end
+  
   if testRemove then
     checkpoint.remove("third") --# removing checkpoints is more of a debug thing to make sure that your program is flowing in the right direction
     print("removing third checkpoint, prepare for error")
-    return checkpoint.reach("third")
+
+     checkpoint.reach("third")
   end
   return "return test"
 end

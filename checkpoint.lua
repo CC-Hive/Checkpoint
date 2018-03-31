@@ -48,6 +48,8 @@ local checkpoints = {}
 
 local nextLabel
 
+local useXPCall = true
+
 
 
 -- Code from Trace by Apemanzilla
@@ -158,13 +160,17 @@ function checkpointMeta.run(defaultLabel, fileName) -- returns whatever the call
     local l = nextLabel 
     nextLabel = nil
     
-    -- returnValues = {checkpoints[l].callback( unpack(checkpoints[l].args))}
     
-    returnValues = { xpcall(function() checkpoints[l].callback(unpack(checkpoints[l].args)) end, function(err)
+    if useXPCall then 
+      returnValues = { xpcall(function() checkpoints[l].callback(unpack(checkpoints[l].args)) end, function(err)
             local stack = buildStackTrace(err)
             printError("\nProgram has crashed! Stack trace:")
             printError(stack)
         end) }
+    else
+      returnValues = {checkpoints[l].callback( unpack(checkpoints[l].args))}
+    end
+    
     
   end
   
@@ -183,9 +189,14 @@ end
 
 
 for k, v in pairs(checkpointMeta) do
-  checkpoint[k] = function(...)
-    local args = { ... }
-    return xpcall(function() checkpointMeta[k](unpack(args)) end, buildStackTrace)
+  local useXPCall = false
+  if useXPCall then
+    checkpoint[k] = function(...)
+      local args = { ... }
+      return xpcall(function() checkpointMeta[k](unpack(args)) end, buildStackTrace)
+    end
+  else
+    checkpoint[k] = v
   end
 end
 
