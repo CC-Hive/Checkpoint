@@ -156,7 +156,7 @@ function checkpoint.run(defaultLabel, fileName) -- returns whatever the callback
     -- The following line is horrible, but we need to capture the current traceback and run
     -- the function on the same line.
     returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
-    if not returnValues[1] then trace = traceback("checkpoint.lua"..":1:") end
+    if not returnValues[1] then trace = traceback(_G.shell.getRunningProgram()..":1:") end
     if not returnValues[1] and returnValues[2] ~= nil then
       trace = trimTraceback(returnValues[2], trace)
 

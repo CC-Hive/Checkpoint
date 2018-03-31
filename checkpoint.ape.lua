@@ -49,50 +49,55 @@ local nextLabel
 
 
 
-
-local function traceback(x)
-  -- Attempt to detect error() and error("xyz", 0).
-  -- This probably means they're erroring the program intentionally and so we
-  -- shouldn't display anything.
-  if x == nil or (type(x) == "string" and not x:find(":%d+:")) then
-    return x
-  end
-
-  if type(debug) == "table" and type(debug.traceback) == "function" then
-    return debug.traceback(tostring(x), 2)
-  else
-    local level = 3
-    local out = { tostring(x), "stack traceback:" }
-    while true do
-      local _, msg = pcall(error, "", level)
-      if msg == "" then break end
-
-      out[#out + 1] = "  " .. msg
-      level = level + 1
+-- Code from Trace by Apemanzilla
+local function buildStackTrace(rootErr)
+    -- TODO: if error is "Terminated" then print Terminated only
+    local trace = {}
+    local i, hitEnd, _, e = 4, false
+ 
+    repeat
+        _, e = pcall(function() error("<tracemarker>", i) end)
+        i = i + 1
+        if e == "xpcall: <tracemarker>" or e == "pcall: <tracemarker>" then
+            hitEnd = true
+            break
+        end
+        table.insert(trace, e)
+    until i > 10
+ 
+    table.remove(trace)
+    table.remove(trace, 1)
+ 
+    if rootErr:match("^" .. trace[1]:match("^(.-:%d+)")) then table.remove(trace, 1) end
+ 
+    local out = {}
+ 
+    table.insert(out, rootErr)
+   
+    for i, v in ipairs(trace) do
+        table.insert(out, "  at " .. v:match("^(.-:%d+)"))
     end
-
+ 
+    if not hitEnd then
+        table.insert(out, "  ...")
+    end
+ 
     return table.concat(out, "\n")
-  end
 end
 
+local eshell = setmetatable({getRunningProgram=function() return path end}, {__index = shell})
+local env = setmetatable({shell=eshell}, {__index=_ENV or getfenv()})
 
-
-
-
-local function trimTraceback(target, marker)
-  local ttarget, tmarker = {}, {}
-  for line in target:gmatch("([^\n]*)\n?") do ttarget[#ttarget + 1] = line end
-  for line in marker:gmatch("([^\n]*)\n?") do tmarker[#tmarker + 1] = line end
-
-  local t_len, m_len = #ttarget, #tmarker
-  while t_len >= 3 and ttarget[t_len] == tmarker[m_len] do
-    table.remove(ttarget, t_len)
-    t_len, m_len = t_len - 1, m_len - 1
-  end
-
-  return ttarget
+env.pcall = function(f, ...)
+    local args = { ... }
+    return xpcall(function() f(unpack(args)) end, buildStackTrace)
 end
 
+env.xpcall = function(f, e)
+    return xpcall(function() f() end, function(err) e(buildStackTrace(err)) end)
+end
+
+-- end of code from Trace
     
     
     
@@ -147,27 +152,14 @@ function checkpoint.run(defaultLabel, fileName) -- returns whatever the callback
     
     
   
-    
-      
-      
-      
-    local trace
-    
-    -- The following line is horrible, but we need to capture the current traceback and run
-    -- the function on the same line.
-    returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
-    if not returnValues[1] then trace = traceback("checkpoint.lua"..":1:") end
-    if not returnValues[1] and returnValues[2] ~= nil then
-      trace = trimTraceback(returnValues[2], trace)
-
-      local max, remaining = 15, 10
-      if #trace > max then
-        for i = #trace - max, 0, -1 do table.remove(trace, remaining + i) end
-        table.insert(trace, remaining, "  ...")
-      end
-
-      returnValues[2] = table.concat(trace, "\n")
-    end
+    returnValues = { xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, function(err)
+          local stack = buildStackTrace(err)
+          printError("\nProgram has crashed! Stack trace:")
+          printError(stack)
+          
+          printError("\nCheckpoints ran in this instance:")
+          printError("  "..table.concat(checkpointTrace, "\n  "))
+      end) }
       
     table.remove(returnValues, 1)
       

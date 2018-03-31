@@ -1,6 +1,6 @@
 local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can also be loaded with require and os.loadAPI
 
-local testRemove = true --false --# try with this set to false then try with it as true
+local testRemove = false --# try with this set to false then try with it as true
 
 local forceErrorInTest = false
 
@@ -18,7 +18,7 @@ local function c(...)
   print(table.concat({...}, " "))
   
   print("Queuing terminate event, rerun program for next part of test")
-   --os.queueEvent("terminate")
+  os.queueEvent("terminate")
   checkpoint.reach("third")
 end
 
