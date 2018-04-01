@@ -165,25 +165,27 @@ function checkpoint.run(defaultLabel, fileName) -- returns whatever the callback
         for i = #trace - max, 0, -1 do table.remove(trace, remaining + i) end
         table.insert(trace, remaining, "  ...")
       end
-
+ 
+      
       returnValues[2] = table.concat(trace, "\n")
-    end
+    else
+      -- we have finished the program, delete the checkpointFile so that the program starts from the beginning if ran again
+      if fs.exists(checkpointFile) then
+        fs.delete(checkpointFile)
+      end
       
-    table.remove(returnValues, 1)
       
-   
+      table.remove(returnValues, 1)
+      
+      return unpack(returnValues) 
+    end 
     
     
   end
   
-  
-  -- we have finished the program, delete the checkpointFile so that the program starts from the beginning if ran again
-  if fs.exists(checkpointFile) then
-    fs.delete(checkpointFile)
-  end
+ 
   
   
-  return unpack(returnValues) 
 end
 
 
