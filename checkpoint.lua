@@ -5,35 +5,62 @@
 --
 -- If you are interested in the above format: http://www.computercraft.info/forums2/index.php?/topic/18630-rfc-standard-for-program-metadata-for-graphical-shells-use/
 -- 
--- Includes parts from Apemanzilla's Trace program which is avaliable from here: http://www.computercraft.info/forums2/index.php?/topic/27844-trace-simple-stack-traces-for-errors/
--- Permission to include these parts was given here: http://www.computercraft.info/forums2/index.php?/topic/29442-checkpoint-a-work-around-for-persistence/page__view__findpost__p__276148
--- See also the following in reguards to permissions: http://www.computercraft.info/forums2/index.php?/topic/27844-trace-simple-stack-traces-for-errors/page__view__findpost__p__261908
+-- Includes stack tracing code from SquidDev's Mildly Better Shell (Also known as MBS): http://www.computercraft.info/forums2/index.php?/topic/29253-mildly-better-shell-various-extensions-to-the-default-shell/
 --
 -- Checkpoint doesn't save your program's data, it must do that itself. Checkpoint only helps it to get to roughly the right area of code to resume execution.
 --
 -- One may want to have a table with needed data in which gets passed over checkpoints with each checkpoint segment first checking that this table exists and loading it from a file if it doesn't and the last thing it does before reaching the checkpoint is saving this table to that file.
 --
--- The MIT License (MIT)
+-- Checkpoint's License:
 --
--- Copyright (c) 2018 Lupus590
+--  The MIT License (MIT)
 --
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
+--  Copyright (c) 2018 Lupus590
 --
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
+--  Permission is hereby granted, free of charge, to any person obtaining a copy
+--  of this software and associated documentation files (the "Software"), to deal
+--  in the Software without restriction, including without limitation the rights
+--  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+--  copies of the Software, and to permit persons to whom the Software is
+--  furnished to do so, subject to the following conditions:
 --
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+--  The above copyright notice and this permission notice shall be included in all
+--  copies or substantial portions of the Software.
+--
+--  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+--  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+--  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+--  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+--  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+--  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+--  SOFTWARE.
+--
+--
+-- MBS's License:
+--
+--  The MIT License (MIT)
+--
+--  Copyright (c) 2017 SquidDev
+--
+--  Permission is hereby granted, free of charge, to any person obtaining a copy
+--  of this software and associated documentation files (the "Software"), to deal
+--  in the Software without restriction, including without limitation the rights
+--  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+--  copies of the Software, and to permit persons to whom the Software is
+--  furnished to do so, subject to the following conditions:
+--
+--  The above copyright notice and this permission notice shall be included in all
+--  copies or substantial portions of the Software.
+--
+--  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+--  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+--  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+--  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+--  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+--  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+--  SOFTWARE.
+--
+--
 --]]
 
 local checkpoint = shell and {} or (_ENV or getfenv())
@@ -46,9 +73,11 @@ local checkpointTrace = {}
 
 local nextLabel
 
+local useStackTracing = true
 
 
 
+-- MBS Stack Tracing
 
 local function traceback(x)
   -- Attempt to detect error() and error("xyz", 0).
@@ -75,10 +104,6 @@ local function traceback(x)
   end
 end
 
-
-
-
-
 local function trimTraceback(target, marker)
   local ttarget, tmarker = {}, {}
   for line in target:gmatch("([^\n]*)\n?") do ttarget[#ttarget + 1] = line end
@@ -93,9 +118,10 @@ local function trimTraceback(target, marker)
   return ttarget
 end
 
-    
-    
-    
+-- ENd of MBS Stack Tracing
+
+
+
 
 function checkpoint.add(label, callback, ...)
   if type(label) ~= "string" then error("Bad arg[1], expected string, got "..type(label), 2) end
@@ -122,11 +148,13 @@ function checkpoint.reach(label)
   nextLabel = label
 end
 
-function checkpoint.run(defaultLabel, fileName) -- returns whatever the callbacks do
+function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whatever the callbacks do
   if type(defaultLabel) ~= "string" then error("Bad arg[1], expected string, got "..type(defaultLabel), 2) end
   if not checkpoints[defaultLabel] then error("Bad arg[1], no known checkpoint with label "..tostring(defaultLabel), 2) end
   if fileName and type(fileName) ~= "string" then error("Bad arg[2], expected string or nil, got "..type(fileName), 2) end
-  -- TODO: check that filename is valid
+  if stackTracing and type(stackTracing) ~= "boolean" then error("Bad arg[3], expected bool or nil, got "..type(stackTracing), 2) end
+  
+  useStackTracing = stackTracing or useStackTracing
   
   checkpointFile = fileName or checkpointFile
   nextLabel = defaultLabel
@@ -139,53 +167,52 @@ function checkpoint.run(defaultLabel, fileName) -- returns whatever the callback
   end
   
   
+  
+  
   local returnValues
   local unpack = unpack or table.unpack
+  local ok  
   while nextLabel ~= nil do
     local l = nextLabel 
     nextLabel = nil
     
-    
-  
-    
+    if useStackTracing then 
+      local trace
       
-      
-      
-    local trace
-    
-    -- The following line is horrible, but we need to capture the current traceback and run
-    -- the function on the same line.
-    returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
-    if not returnValues[1] then trace = traceback("checkpoint.lua"..":1:") end
-    if not returnValues[1] and returnValues[2] ~= nil then
-      trace = trimTraceback(returnValues[2], trace)
+      -- The following line is horrible, but we need to capture the current traceback and run
+      -- the function on the same line.
+      returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
+      ok = table.remove(returnValues, 1)
+      if not ok then 
+        trace = traceback("checkpoint.lua"..":1:")
+        if returnValues[1] ~= nil then
+          trace = trimTraceback(returnValues[1], trace)
 
-      local max, remaining = 15, 10
-      if #trace > max then
-        for i = #trace - max, 0, -1 do table.remove(trace, remaining + i) end
-        table.insert(trace, remaining, "  ...")
-      end
- 
-      
-      returnValues[2] = table.concat(trace, "\n")
+          local max, remaining = 15, 10
+          if #trace > max then
+            for i = #trace - max, 0, -1 do table.remove(trace, remaining + i) end
+            table.insert(trace, remaining, "  ...")
+          end
+     
+          
+           returnValues[1] = table.concat(trace, "\n")
+        end
+        error()
+      end -- if not ok
     else
-      -- we have finished the program, delete the checkpointFile so that the program starts from the beginning if ran again
-      if fs.exists(checkpointFile) then
-        fs.delete(checkpointFile)
-      end
-      
-      
-      table.remove(returnValues, 1)
-      
-      return unpack(returnValues) 
-    end 
-    
+      returnValues = {checkpoints[l].callback(unpack(checkpoints[l].args))}
+    end
     
   end
+   
   
+  -- we have finished the program, delete the checkpointFile so that the program starts from the beginning if ran again
+  if fs.exists(checkpointFile) then
+    fs.delete(checkpointFile)
+  end
+   
+  return type(returnValues) == "table" and unpack(returnValues) or returnValues -- if it's a table, return the unpacked table, else return whatever it is
  
-  
-  
 end
 
 
