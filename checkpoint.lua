@@ -181,10 +181,13 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
       
       -- The following line is horrible, but we need to capture the current traceback and run
       -- the function on the same line.
+      
+      --returnValues = {true, checkpoints[l].callback(unpack(checkpoints[l].args))}
       returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
       ok = table.remove(returnValues, 1)
       if not ok then 
         trace = traceback("checkpoint.lua"..":1:")
+        local oldTermColour
         if returnValues[1] ~= nil then
           trace = trimTraceback(returnValues[1], trace)
 
@@ -195,10 +198,29 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
           end
      
           
-           returnValues[1] = table.concat(trace, "\n")
+          returnValues[1] = table.concat(trace, "\n")
+          
+          if term.isColor() then
+            oldTermColour = term.getTextColor()
+            term.setTextColor(colors.red)
+          end
+          print(returnValues[1])
+          if term.isColor() then
+            term.setTextColor(oldTermColour)
+          end
+          
         end
-        print("Checkpoints reached in this instance:")
-        print(table.concat(checkpointTrace, "  \n"))
+        
+        
+        if term.isColor() then
+          oldTermColour = term.getTextColor()
+          term.setTextColor(colors.red)
+        end
+        print("\nCheckpoints reached in this instance:")
+        print("  "..table.concat(checkpointTrace, "\n  "))
+        if term.isColor() then
+          term.setTextColor(oldTermColour)
+        end
         error()
       end -- if not ok
     else
