@@ -63,6 +63,10 @@
 --
 --]]
 
+
+
+-- TODO: cleanup code
+
 local checkpoint = shell and {} or (_ENV or getfenv())
 
 local checkpointFile = ".checkpoint"
@@ -182,7 +186,6 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
       -- The following line is horrible, but we need to capture the current traceback and run
       -- the function on the same line.
       
-      --returnValues = {true, checkpoints[l].callback(unpack(checkpoints[l].args))}
       returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
       ok = table.remove(returnValues, 1)
       if not ok then 
@@ -221,7 +224,7 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
         if term.isColor() then
           term.setTextColor(oldTermColour)
         end
-        error()
+        error("", 0)
       end -- if not ok
     else
       returnValues = {checkpoints[l].callback(unpack(checkpoints[l].args))}
