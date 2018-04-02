@@ -144,7 +144,6 @@ function checkpoint.reach(label)
   local f = fs.open(checkpointFile,"w")
   f.writeLine(label)
   f.close()
-  checkpointTrace[#checkpointTrace+1] = label
   nextLabel = label
 end
 
@@ -159,21 +158,22 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
   checkpointFile = fileName or checkpointFile
   nextLabel = defaultLabel
   
+ 
+  
   if fs.exists(checkpointFile) then
     local f = fs.open(checkpointFile, "r")
     nextLabel = f.readLine()
     f.close()
     if not checkpoints[nextLabel] then error("Found checkpoint file '"..fileName.."' containing unknown label '"..nextLabel.."'. Are your sure that this is the right file and that nothing is changing it?", 0) end
   end
-  
-  
-  
+    
   
   local returnValues
   local unpack = unpack or table.unpack
   local ok  
   while nextLabel ~= nil do
     local l = nextLabel 
+    checkpointTrace[#checkpointTrace+1] = nextLabel
     nextLabel = nil
     
     if useStackTracing then 
@@ -197,6 +197,8 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
           
            returnValues[1] = table.concat(trace, "\n")
         end
+        print("Checkpoints reached in this instance:")
+        print(table.concat(checkpointTrace, "  \n"))
         error()
       end -- if not ok
     else
