@@ -1,8 +1,11 @@
+
 local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can also be loaded with require and os.loadAPI
 
-local testRemove = false --# try with this set to false then try with it as true
+local doTerminateTest = true
 
-local forceErrorInTest = false
+local doCheckpointRemoveTest = false
+
+local doErrorInCallbackTest = false
 
 local args = {...}
 
@@ -18,7 +21,9 @@ local function c(...)
   print(table.concat({...}, " "))
   
   print("Queuing terminate event, rerun program for next part of test")
-  os.queueEvent("terminate")
+  if doTerminateTest then
+    os.queueEvent("terminate")
+  end
   checkpoint.reach("third")
 end
 
@@ -27,11 +32,11 @@ local function d()
   sleep(0.001) --# catch that terminate if we are on first run, second run won't have a terminate
   print("I'll take that as no")
   
-  if forceErrorInTest then
-    error("forceErrorInTest")
+  if doErrorInCallbackTest then
+    error("doErrorInCallbackTest")
   end
   
-  if testRemove then
+  if doCheckpointRemoveTest then
     checkpoint.remove("third") --# removing checkpoints is more of a debug thing to make sure that your program is flowing in the right direction
     print("removing third checkpoint, prepare for error")
 

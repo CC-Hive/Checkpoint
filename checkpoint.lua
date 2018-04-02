@@ -143,7 +143,7 @@ end
 
 function checkpoint.reach(label)
   if type(label) ~= "string" then error("Bad arg[1], expected string, got "..type(label), 2) end
-  if not checkpoints[label] then error("Bad arg[1], no known checkpoint with label '"..tostring(label).."'. You may want to check spelling, scope and such.", 1) end
+  if not checkpoints[label] then error("Bad arg[1], no known checkpoint with label '"..tostring(label).."'. You may want to check spelling, scope and such.", 2) end
 
   local f = fs.open(checkpointFile,"w")
   f.writeLine(label)
@@ -207,23 +207,17 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
             oldTermColour = term.getTextColor()
             term.setTextColor(colors.red)
           end
-          print(returnValues[1])
+          print(returnValues[1].."\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in")
           if term.isColor() then
             term.setTextColor(oldTermColour)
           end
           
+          
+          
         end
         
         
-        if term.isColor() then
-          oldTermColour = term.getTextColor()
-          term.setTextColor(colors.red)
-        end
-        print("\nCheckpoints reached in this instance:")
-        print("  "..table.concat(checkpointTrace, "\n  "))
-        if term.isColor() then
-          term.setTextColor(oldTermColour)
-        end
+        
         error("", 0)
       end -- if not ok
     else
