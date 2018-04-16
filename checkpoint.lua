@@ -79,7 +79,7 @@ local nextLabel
 
 local useStackTracing = true
 
-
+local stackTraced = false -- set to true on traceback function so we can print checkpoint reach order on error TODO: find less hacky way of doing this
 
 -- MBS Stack Tracing
 
@@ -91,6 +91,7 @@ local function traceback(x)
     return x
   end
 
+  stackTraced = true
   if type(debug) == "table" and type(debug.traceback) == "function" then
     return debug.traceback(tostring(x), 2)
   else
@@ -203,14 +204,19 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
           
           returnValues[1] = table.concat(trace, "\n")
           
+          
           if term.isColor() then
             oldTermColour = term.getTextColor()
             term.setTextColor(colors.red)
           end
-          print(returnValues[1].."\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in")
+          write(returnValues[1])
+          if stackTraced and returnValues[1] ~= "Terminated" then -- TODO: Make this less hacky
+            print("\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in")
+          end
           if term.isColor() then
             term.setTextColor(oldTermColour)
           end
+          
           
           
           
