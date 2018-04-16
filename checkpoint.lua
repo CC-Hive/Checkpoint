@@ -175,22 +175,23 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
   
   local returnValues
   local unpack = unpack or table.unpack
-  local ok  
+  
   while nextLabel ~= nil do
     local l = nextLabel 
     checkpointTrace[#checkpointTrace+1] = nextLabel
     nextLabel = nil
     
     if useStackTracing then 
-      local trace
+      
+      
       
       -- The following line is horrible, but we need to capture the current traceback and run
       -- the function on the same line.
       
       returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
-      ok = table.remove(returnValues, 1)
+      local ok   = table.remove(returnValues, 1)
       if not ok then 
-        trace = traceback("checkpoint.lua"..":1:")
+        local trace = traceback("checkpoint.lua"..":1:")
         local errorMessage = ""
         if returnValues[1] ~= nil then
           trace = trimTraceback(returnValues[1], trace)
