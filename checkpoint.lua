@@ -79,7 +79,7 @@ local nextLabel
 
 local useStackTracing = true
 
-local stackTraced = false -- set to true on traceback function so we can print checkpoint reach order on error TODO: find less hacky way of doing this
+local intentionalError
 
 -- MBS Stack Tracing
 
@@ -88,10 +88,11 @@ local function traceback(x)
   -- This probably means they're erroring the program intentionally and so we
   -- shouldn't display anything.
   if x == nil or (type(x) == "string" and not x:find(":%d+:")) then
+    intentionalError = true
     return x
   end
 
-  stackTraced = true
+  intentionalError = false
   if type(debug) == "table" and type(debug.traceback) == "function" then
     return debug.traceback(tostring(x), 2)
   else
@@ -187,7 +188,7 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
       
       -- The following line is horrible, but we need to capture the current traceback and run
       -- the function on the same line.
-      
+      intentionalError = nil
       returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
       local ok   = table.remove(returnValues, 1)
       if not ok then 
@@ -206,10 +207,9 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
           errorMessage = table.concat(trace, "\n")
           
           
-          if stackTraced and errorMessage ~= "Terminated" then -- TODO: Make this less hacky
+          if intentionalError == false and intentionalError ~= nil then
             errorMessage = errorMessage.."\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in"
           end
-          stackTraced = false
           
         end
         
