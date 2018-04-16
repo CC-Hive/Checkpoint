@@ -191,7 +191,7 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
       ok = table.remove(returnValues, 1)
       if not ok then 
         trace = traceback("checkpoint.lua"..":1:")
-        local oldTermColour
+        local errorMessage = ""
         if returnValues[1] ~= nil then
           trace = trimTraceback(returnValues[1], trace)
 
@@ -202,29 +202,17 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
           end
      
           
-          returnValues[1] = table.concat(trace, "\n")
+          errorMessage = table.concat(trace, "\n")
           
           
-          if term.isColor() then
-            oldTermColour = term.getTextColor()
-            term.setTextColor(colors.red)
+          if stackTraced and errorMessage ~= "Terminated" then -- TODO: Make this less hacky
+            errorMessage = errorMessage.."\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in"
           end
-          write(returnValues[1])
-          if stackTraced and returnValues[1] ~= "Terminated" then -- TODO: Make this less hacky
-            print("\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in")
-          end
-          if term.isColor() then
-            term.setTextColor(oldTermColour)
-          end
-          
-          
-          
+          stackTraced = false
           
         end
         
-        
-        
-        error("", 0)
+        error(errorMessage, 0)
       end -- if not ok
     else
       returnValues = {checkpoints[l].callback(unpack(checkpoints[l].args))}
