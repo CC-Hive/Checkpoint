@@ -5,11 +5,11 @@ local doTerminateTest = true
 
 local doCheckpointRemoveTest = false
 
-local doErrorInCallbackTest = true
+local doErrorInCallbackTest = false
 
 local useCheckpointErrorTrace = false
 
-local checkpointFileName = "checkpointTestFile"
+local checkpointFileName = nil -- nill for default
 
 local args = {...}
 

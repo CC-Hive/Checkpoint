@@ -157,9 +157,11 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
   if type(defaultLabel) ~= "string" then error("Bad arg[1], expected string, got "..type(defaultLabel), 2) end
   if not checkpoints[defaultLabel] then error("Bad arg[1], no known checkpoint with label "..tostring(defaultLabel), 2) end
   if fileName and type(fileName) ~= "string" then error("Bad arg[2], expected string or nil, got "..type(fileName), 2) end
-  if stackTracing and type(stackTracing) ~= "boolean" then error("Bad arg[3], expected bool or nil, got "..type(stackTracing), 2) end
+  if stackTracing and type(stackTracing) ~= "boolean" then error("Bad arg[3], expected boolean or nil, got "..type(stackTracing), 2) end
   
-  useStackTracing = stackTracing or useStackTracing
+  if stackTracing ~= nil then 
+    useStackTracing = stackTracing
+  end
   
   checkpointFile = fileName or checkpointFile
   nextLabel = defaultLabel
