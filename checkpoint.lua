@@ -63,6 +63,7 @@
 --
 --]]
 
+-- TODO: detect when we errored and warn somehow to prevent boot, error, reboot loops
 
 
 -- TODO: cleanup code
