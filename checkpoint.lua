@@ -64,6 +64,7 @@
 --]]
 
 -- TODO: detect when we errored and warn somehow to prevent boot, error, reboot loops
+-- May be able to detect rebotes using some monstocity of os.clock os.time os.day
 
 
 -- TODO: cleanup code

@@ -58,6 +58,7 @@ end,
 local testAPI = {
 howlci = howlci,
 
+-- returnValueCheckFunction should take the actual return values as args, this is table.unpacked into the args of the callback function
 test = function(testName, expectOK, returnValueCheckFunction, funcToTest, ...) -- the bulk of the API, this is what you are going to want to use most
   if returnValueCheckFunction and type(returnValueCheckFunction) ~= "function" then
     error("Bad arg[3], expected function or nil, got "..type(returnValueCheckFunction),2)
@@ -67,7 +68,7 @@ test = function(testName, expectOK, returnValueCheckFunction, funcToTest, ...) -
   local ok = table.remove(returnedValues, 1)
   if ok == expectOK then
     if returnValueCheckFunction then
-      local r = returnValueCheckFunction()
+      local r = returnValueCheckFunction(table.unpack(returnedValues, 1, returnedValues.n)
       if type(r) ~= "boolean" then
         error("Bad arg[3], got function which returned non boolean value "..tostring(r))
       end
