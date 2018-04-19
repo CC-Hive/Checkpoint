@@ -134,7 +134,7 @@ function checkpoint.add(label, callback, ...)
   if type(label) ~= "string" then error("Bad arg[1], expected string, got "..type(label), 2) end
   if type(callback) ~= "function" then error("Bad arg[2], expected function, got "..type(callback), 2) end
   
-  checkpoints[label] = {callback = callback, args = {...}, }  
+  checkpoints[label] = {callback = callback, args = table.pack(...), }  
 end
 
 function checkpoint.remove(label) -- this is intended for debugging, users can use it to make sure that their programs don't loop on itself when it's not meant to
@@ -178,7 +178,6 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
     
   
   local returnValues
-  local unpack = unpack or table.unpack
   
   while nextLabel ~= nil do
     local l = nextLabel 
@@ -192,7 +191,7 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
       -- The following line is horrible, but we need to capture the current traceback and run
       -- the function on the same line.
       intentionalError = nil
-      returnValues = {xpcall(function() return checkpoints[l].callback(unpack(checkpoints[l].args)) end, traceback)}
+      returnValues = table.pack(xpcall(function() return checkpoints[l].callback(table.unpack(checkpoints[l].args, 1, checkpoints[l].args.n)) end, traceback))
       local ok   = table.remove(returnValues, 1)
       if not ok then 
         local trace = traceback("checkpoint.lua"..":1:")
@@ -219,7 +218,7 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
         error(errorMessage, 0)
       end -- if not ok
     else
-      returnValues = {checkpoints[l].callback(unpack(checkpoints[l].args))}
+      returnValues = table.pack(checkpoints[l].callback(table.unpack(checkpoints[l].args, 1, checkpoints[l].args.n)))
     end
     
   end
@@ -230,9 +229,9 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
     fs.delete(checkpointFile)
   end
    
-  return type(returnValues) == "table" and unpack(returnValues) or returnValues -- if it's a table, return the unpacked table, else return whatever it is
+  return type(returnValues) == "table" and table.unpack(returnValues, 1, returnValues.n) or returnValues -- if it's a table, return the unpacked table, else return whatever it is
  
-end
+ end
 
 
 return checkpoint
