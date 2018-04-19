@@ -1,6 +1,4 @@
 
--- TODO: make this a proper test file
-
 local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can also be loaded with require and os.loadAPI
 
 local doTerminateTest = true
