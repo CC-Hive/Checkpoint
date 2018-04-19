@@ -1,6 +1,8 @@
 
 -- TODO: make this a proper test file
 
+local howlci = howlci or {status = function() end)
+
 local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can also be loaded with require and os.loadAPI
 
 local doTerminateTest = true
