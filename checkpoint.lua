@@ -77,9 +77,9 @@ local checkpointTrace = {}
 
 local nextLabel
 
-local useStackTracing = true
+local useStackTracing = true -- sets default for the API, program can set at runtime with third arg to checkpoint.run
 
-local intentionalError
+local intentionalError -- true if traceback function belives the error is intentional, false otherwise, nil if traceback has not be generated
 
 -- MBS Stack Tracing
 
@@ -207,8 +207,8 @@ function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whateve
           errorMessage = table.concat(trace, "\n")
           
           
-          if intentionalError == false and intentionalError ~= nil then
-            errorMessage = errorMessage.."\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in"
+          if intentionalError == false and errorMessage ~= "Terminated" then
+            errorMessage = errorMessage.."\n\nCheckpoints ran in this instance:\n  "..table.concat(checkpointTrace, "\n  ").." <- error occured in\n"
           end
           
         end

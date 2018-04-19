@@ -5,7 +5,11 @@ local doTerminateTest = true
 
 local doCheckpointRemoveTest = false
 
-local doErrorInCallbackTest = false
+local doErrorInCallbackTest = true
+
+local useCheckpointErrorTrace = false
+
+local checkpointFileName = "checkpointTestFile"
 
 local args = {...}
 
@@ -57,6 +61,6 @@ checkpoint.add("second", c, 2, unpack(args))
 checkpoint.add("third", d)
 
 
-local r = checkpoint.run("start") --# identifies if your program needs to continue or starts from given label if it doesn't
+local r = checkpoint.run("start", checkpointFileName, useCheckpointErrorTrace) --# identifies if your program needs to continue or starts from given label if it doesn't
 
 print(tostring(r)) --# checkpoint.run returns whatever the last checkpoint callback does
