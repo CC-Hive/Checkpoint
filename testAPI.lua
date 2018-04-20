@@ -68,7 +68,7 @@ test = function(testName, expectOK, returnValueCheckFunction, funcToTest, ...) -
   local ok = table.remove(returnedValues, 1)
   if ok == expectOK then
     if returnValueCheckFunction then
-      local r = returnValueCheckFunction(table.unpack(returnedValues, 1, returnedValues.n)
+      local r = returnValueCheckFunction(table.unpack(returnedValues, 1, returnedValues.n))
       if type(r) ~= "boolean" then
         error("Bad arg[3], got function which returned non boolean value "..tostring(r))
       end
