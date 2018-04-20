@@ -31,7 +31,8 @@
 --]]
 
 -- This stub of howlci is public domain as far as Lupus590 is conserned, the howlci API may have strings attached which may exstend to this stub.
-local howlci = howlci or {status = function(status, message) -- stub the bit of howlci that we use so that tests can be run manually
+local howlci = howlci or { -- stub the bit of howlci that we use so that tests can be run manually
+status = function(status, message)
   if not type(status) == "string" then error("arg[1] must be a string",2) end
   status = string.lower(status)
   local termIsColour = term and term.isColour and term.isColour()
@@ -51,6 +52,30 @@ local howlci = howlci or {status = function(status, message) -- stub the bit of 
   if termIsColour then term.setTextColour(colours.white) end
   print(tostring(message))
 end, 
+log = function(level, message)
+   if not type(level) == "string" then error("arg[1] must be a string",2) end
+  level = string.lower(level)
+  local termIsColour = term and term.isColour and term.isColour()
+  if level == "debug" or level == "verbose" then
+    if termIsColour then term.setTextColour(colours.grey) end
+    write("["..level.."] ")
+  elseif level == "info" then
+    if termIsColour then term.setTextColour(colours.blue) end
+    write("[info] ")
+  elseif level == "warn" or level == "warning" then
+    if termIsColour then term.setTextColour(colours.orange) end
+    write("[warning] ")
+  elseif level == "error" then
+    if termIsColour then term.setTextColour(colours.red) end
+    write("[error] ")
+  else
+    error("arg[1] not a valid level, see https://squiddev-cc.github.io/howl.ci/docs/api.html", 2)
+  end
+  
+  if termIsColour then term.setTextColour(colours.white) end
+  print(tostring(message))
+end
+  
 -- TODO: decide if I will put the rest of the howl.ci API here
 }
 
@@ -74,14 +99,18 @@ test = function(testName, expectOK, returnValueCheckFunction, funcToTest, ...) -
       end
       if r then 
         howlci.status("ok", testName)
+        return true
       else
         howlci.status("fail", testName.."\nFailed with error:\nreturnValueCheckFunction returned false")
+        return false
       end
     else
       howlci.status("ok", testName)
+      return true
     end
   else
     howlci.status("fail", testName.."\nFailed with error:\n"..err)
+    return false
   end
 end,
 
