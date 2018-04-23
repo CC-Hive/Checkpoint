@@ -155,7 +155,7 @@ function checkpoint.reach(label)
   nextLabel = label
 end
 
-function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whatever the callbacks do
+function checkpoint.run(defaultLabel, fileName, stackTracing) -- returns whatever the last callback returns (xpcall stuff stripped if used)
   if type(defaultLabel) ~= "string" then error("Bad arg[1], expected string, got "..type(defaultLabel), 2) end
   if not checkpoints[defaultLabel] then error("Bad arg[1], no known checkpoint with label "..tostring(defaultLabel), 2) end
   if fileName and type(fileName) ~= "string" then error("Bad arg[2], expected string or nil, got "..type(fileName), 2) end
