@@ -2,6 +2,7 @@
 -- @Name: Checkpoint
 -- @Author: Lupus590
 -- @License: MIT
+-- @URL: https://github.com/CC-Hive/Checkpoint
 --
 -- If you are interested in the above format: http://www.computercraft.info/forums2/index.php?/topic/18630-rfc-standard-for-program-metadata-for-graphical-shells-use/
 -- 
