@@ -3,15 +3,15 @@ local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can als
 
 -- DEMO FLAGS
 
-local doTerminateTest = true
+local doTerminateTest = true --# boolean
 
-local doCheckpointRemoveTest = false
+local doCheckpointRemoveTest = false --# boolean
 
-local doErrorInCallbackTest = false
+local doErrorInCallbackTest = false --# boolean
 
-local useCheckpointErrorTrace = false
+local useCheckpointErrorTrace = false --# boolean
 
-local checkpointFileName = nil -- nill for default
+local checkpointFileName = nil --# nil or string, nil for default, string should be absolute path
 
 -- END OF DEMO FLAGS
 
