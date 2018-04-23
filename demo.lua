@@ -1,6 +1,8 @@
 
 local checkpoint = dofile(shell.dir().."/checkpoint.lua") --# Checkpoint can also be loaded with require and os.loadAPI
 
+-- DEMO FLAGS
+
 local doTerminateTest = true
 
 local doCheckpointRemoveTest = false
@@ -10,6 +12,8 @@ local doErrorInCallbackTest = false
 local useCheckpointErrorTrace = false
 
 local checkpointFileName = nil -- nill for default
+
+-- END OF DEMO FLAGS
 
 local args = {...}
 
