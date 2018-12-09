@@ -5,7 +5,7 @@
 -- @Description: testing API for use with howl.ci
 --
 -- If you are interested in the above format: http://www.computercraft.info/forums2/index.php?/topic/18630-rfc-standard-for-program-metadata-for-graphical-shells-use/
--- 
+--
 --
 --  The MIT License (MIT)
 --
@@ -48,10 +48,10 @@ status = function(status, message)
   else
     error("arg[1] not a valid status, see https://squiddev-cc.github.io/howl.ci/docs/api.html", 2)
   end
-  
+
   if termIsColour then term.setTextColour(colours.white) end
   print(tostring(message))
-end, 
+end,
 log = function(level, message)
    if not type(level) == "string" then error("arg[1] must be a string",2) end
   level = string.lower(level)
@@ -71,11 +71,11 @@ log = function(level, message)
   else
     error("arg[1] not a valid level, see https://squiddev-cc.github.io/howl.ci/docs/api.html", 2)
   end
-  
+
   if termIsColour then term.setTextColour(colours.white) end
   print(tostring(message))
 end
-  
+
 -- TODO: decide if I will put the rest of the howl.ci API here
 }
 
@@ -97,7 +97,7 @@ test = function(testName, expectOK, returnValueCheckFunction, funcToTest, ...) -
       if type(r) ~= "boolean" then
         error("Bad arg[3], got function which returned non boolean value "..tostring(r))
       end
-      if r then 
+      if r then
         howlci.status("ok", testName)
         return true
       else
@@ -116,7 +116,7 @@ end,
 
 -- below are utility functions which you may want to use in your returnValueCheckFunctions
 -- based off: https://github.com/IUdalov/u-test#list-of-all-assertions
-equal = function(a, b)
+are_equal = function(a, b)
   return a ==  b
 end,
 not_equal = function(a, b)
@@ -155,5 +155,3 @@ end,
 }
 
 return testAPI
-
-
